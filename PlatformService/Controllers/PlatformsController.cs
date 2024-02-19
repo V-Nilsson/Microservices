@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PlatformService.Contract;
 using PlatformService.Data;
 using PlatformService.Models;
+using PlatformService.SyncDataServices.Http;
 
 namespace PlatformService.Controllers;
 
@@ -11,40 +12,52 @@ namespace PlatformService.Controllers;
 [ApiController]
 public class PlatformsController : ControllerBase
 {
-    private readonly IPlatformRepository _platformRepository;
-    private readonly IMapper _mapper;
+    private readonly IPlatformRepository platformRepository;
+    private readonly IMapper mapper;
+    private readonly ICommandDataClient commandDataClient;
 
-    public PlatformsController(IPlatformRepository platformRepository, IMapper mapper)
+    public PlatformsController(IPlatformRepository platformRepository, IMapper mapper, ICommandDataClient commandDataClient)
     {
-        _platformRepository = platformRepository;
-        _mapper = mapper;
+        this.platformRepository = platformRepository;
+        this.mapper = mapper;
+        this.commandDataClient = commandDataClient;
     }
 
     [HttpGet]
     public ActionResult<IEnumerable<PlatformResponse>> GetPlatforms()
     {
-        var platforms = _platformRepository.GetAllPlatforms();
-        var dto = _mapper.Map<IEnumerable<PlatformResponse>>(platforms);
+        var platforms = platformRepository.GetAllPlatforms();
+        var dto = mapper.Map<IEnumerable<PlatformResponse>>(platforms);
         return Ok(dto);
     }
 
     [HttpGet("{id}", Name = "GetPlatformById")]
     public ActionResult<PlatformResponse> GetPlatformById(int id)
     {
-        var platform = _platformRepository.GetPlatformById(id);
+        var platform = platformRepository.GetPlatformById(id);
         if (platform == null) return NotFound();
-        var dto = _mapper.Map<PlatformResponse>(platform);
+        var dto = mapper.Map<PlatformResponse>(platform);
         return Ok(dto);
     }
 
     [HttpPost]
-    public ActionResult<PlatformResponse> CreatePlatform(PlatformRequest request)
+    public async Task<ActionResult<PlatformResponse>> CreatePlatform(PlatformRequest request)
     {
-        var platformModel = _mapper.Map<Platform>(request);
-        _platformRepository.CreatePlatform(platformModel);
-        _platformRepository.SaveChanges();
+        var platformModel = mapper.Map<Platform>(request);
+        platformRepository.CreatePlatform(platformModel);
+        platformRepository.SaveChanges();
 
-        var response = _mapper.Map<PlatformResponse>(platformModel);
+        var response = mapper.Map<PlatformResponse>(platformModel);
+
+        try
+        {
+            await commandDataClient.SendPlatformToCommand(response);
+        }
+        catch (Exception ex)
+        {
+            await Console.Out.WriteLineAsync($"Could not send synchronously: {ex}");
+        }
+
         return CreatedAtRoute(nameof(GetPlatformById), new { response.Id }, response);
     }
 }
