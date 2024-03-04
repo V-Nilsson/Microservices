@@ -1,13 +1,20 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using CommandsService.Contract;
+using CommandsService.Data;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CommandsService.Controllers;
 [Route("api/commandsservice/[controller]")]
 [ApiController]
 public class PlatformsController : ControllerBase
 {
-    public PlatformsController()
+    private readonly ICommandRepository repository;
+    private readonly IMapper mapper;
+
+    public PlatformsController(ICommandRepository repository, IMapper mapper)
     {
-        
+        this.repository = repository;
+        this.mapper = mapper;
     }
 
     [HttpPost]
@@ -18,9 +25,10 @@ public class PlatformsController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult TestConnection()
+    public ActionResult<IEnumerable<PlatformResponse>> GetAllPlatforms()
     {
-        Console.WriteLine("This is a test of Docker connection");
-        return Ok(1);
+        var platforms = repository.GetAllPlatforms();
+        var dto = mapper.Map<IEnumerable<PlatformResponse>>(platforms);
+        return Ok(dto);
     }
 }
