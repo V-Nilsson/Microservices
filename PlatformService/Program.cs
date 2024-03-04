@@ -3,12 +3,20 @@ using PlatformService.Data;
 using PlatformService.SyncDataServices.Http;
 
 var builder = WebApplication.CreateBuilder(args);
-
 // Add services to the container.
 
-builder.Services.AddControllers();
+//if (builder.Environment.IsProduction())
+//{
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseInMemoryDatabase("InMemory"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("PlatformsConnection")));
+//}
+//else
+//{
+//    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//    options.UseInMemoryDatabase("InMemory"));
+//}
+
+builder.Services.AddControllers();
 builder.Services.AddScoped<IPlatformRepository, PlatformRepository>();
 builder.Services.AddHttpClient<ICommandDataClient, HttpCommandDataClient>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -27,6 +35,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-PreperationDb.PreperationPopulation(app);
+PreperationDb.PreperationPopulation(app, app.Environment.IsProduction());
 
 app.Run();
