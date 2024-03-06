@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using PlatformService.AsyncDataServices;
 using PlatformService.Contract;
 using PlatformService.Data;
 using PlatformService.Models;
@@ -15,12 +16,14 @@ public class PlatformsController : ControllerBase
     private readonly IPlatformRepository platformRepository;
     private readonly IMapper mapper;
     private readonly ICommandDataClient commandDataClient;
+    private readonly IMessageBusClient messageBusClient;
 
-    public PlatformsController(IPlatformRepository platformRepository, IMapper mapper, ICommandDataClient commandDataClient)
+    public PlatformsController(IPlatformRepository platformRepository, IMapper mapper, ICommandDataClient commandDataClient, IMessageBusClient messageBusClient)
     {
         this.platformRepository = platformRepository;
         this.mapper = mapper;
         this.commandDataClient = commandDataClient;
+        this.messageBusClient = messageBusClient;
     }
 
     [HttpGet]
@@ -57,6 +60,10 @@ public class PlatformsController : ControllerBase
         {
             await Console.Out.WriteLineAsync($"Could not send synchronously: {ex}");
         }
+
+        var platformPublished = mapper.Map<PlatformPublished>(response);
+        platformPublished.Event = nameof(platformPublished);
+        messageBusClient.PublishNewPlatform(platformPublished);
 
         return CreatedAtRoute(nameof(GetPlatformById), new { response.Id }, response);
     }

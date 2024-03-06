@@ -11,5 +11,6 @@ public class PlatformProfile : Profile
         CreateMap<Platform, PlatformResponse>();
         CreateMap<PlatformResponse, Platform>();
         CreateMap<PlatformRequest, Platform>();
+        CreateMap<PlatformResponse, PlatformPublished>();
     }
 }
