@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PlatformService.AsyncDataServices;
 using PlatformService.Data;
 using PlatformService.SyncDataServices.Http;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
@@ -22,6 +23,10 @@ builder.Services.AddScoped<IPlatformRepository, PlatformRepository>();
 builder.Services.AddHttpClient<ICommandDataClient, HttpCommandDataClient>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddSingleton<IMessageBusClient, MessageBusClient>();
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .WriteTo.Console()
+    .CreateLogger();
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(80);

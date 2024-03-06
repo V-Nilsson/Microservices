@@ -5,6 +5,7 @@ using PlatformService.Contract;
 using PlatformService.Data;
 using PlatformService.Models;
 using PlatformService.SyncDataServices.Http;
+using Serilog;
 
 namespace PlatformService.Controllers;
 
@@ -58,7 +59,8 @@ public class PlatformsController : ControllerBase
         }
         catch (Exception ex)
         {
-            await Console.Out.WriteLineAsync($"Could not send synchronously: {ex}");
+            Log.Error($"Could not send synchronously: {ex}");
+            //await Console.Out.WriteLineAsync($"Could not send synchronously: {ex}");
         }
 
         var platformPublished = mapper.Map<PlatformPublished>(response);
