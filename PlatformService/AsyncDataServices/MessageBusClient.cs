@@ -1,5 +1,6 @@
 ﻿using PlatformService.Contract;
 using RabbitMQ.Client;
+using Serilog;
 using System.Text;
 using System.Text.Json;
 
@@ -14,10 +15,10 @@ public class MessageBusClient : IMessageBusClient
     public MessageBusClient(IConfiguration configuration)
     {
         this.configuration = configuration;
-        var factory = new ConnectionFactory() 
-        { 
-            HostName = configuration["RabbitMqHost"], 
-            Port = int.Parse(configuration["RabbitMqPort"]) 
+        var factory = new ConnectionFactory()
+        {
+            HostName = configuration["RabbitMqHost"],
+            Port = int.Parse(configuration["RabbitMqPort"])
         };
         try
         {
@@ -27,11 +28,11 @@ public class MessageBusClient : IMessageBusClient
 
             connection.ConnectionShutdown += RabbitMQ_ConnectionShutDown;
 
-            Console.WriteLine("--> Connected to Message Bus");
+            Log.Information("--> Connected to Message Bus");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"--> Could not connect to the message bus: {ex.Message}");
+            Log.Error($"--> Could not connect to the message bus: {ex.Message}");
         }
     }
     public void PublishNewPlatform(PlatformPublished platform)
@@ -40,10 +41,10 @@ public class MessageBusClient : IMessageBusClient
 
         if (connection.IsOpen) 
         {
-            Console.WriteLine("--> RabbitMq Connection Open, sending message");
+            Log.Information("--> RabbitMq Connection Open, sending message");
             SendMessage(message);
         }
-        
+
     }
 
     private void SendMessage(string message)
@@ -53,12 +54,12 @@ public class MessageBusClient : IMessageBusClient
             routingKey: "",
             basicProperties: null,
             body: body);
-        Console.WriteLine($"--> We have sent {message}");
+        Log.Information($"--> We have sent {message}");
     }
 
     public void Dispose()
     {
-        Console.WriteLine("Message Bus Disposed");
+        Log.Information("Message Bus Disposed");
         if (channel.IsOpen)
         {
             channel.Close();
@@ -68,6 +69,6 @@ public class MessageBusClient : IMessageBusClient
 
     private void RabbitMQ_ConnectionShutDown(object sender, ShutdownEventArgs e)
     {
-        Console.WriteLine("--> RabbitMq Connection Shutdown");
+        Log.Information("--> RabbitMq Connection Shutdown");
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace PlatformService.Data;
 public static class PreperationDb
@@ -13,20 +14,20 @@ public static class PreperationDb
     {
         if (isProduction)
         {
-            Console.WriteLine("--> Attempting to apply migrations...");
+            Log.Information("--> Attempting to apply migrations...");
             try
             {
                 dbContext.Database.Migrate();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"--> Could not run migrations: {ex.Message}");
+                Log.Error($"--> Could not run migrations: {ex.Message}");
             }
         }
 
         if (!dbContext.Platforms.Any())
         {
-            Console.WriteLine("Seeding Data...");
+            Log.Information("Seeding Data...");
 
             dbContext.Platforms.AddRange(
                 new Models.Platform() { Name = "Dot Net", Publisher = "Microsoft", Cost= "Free" },

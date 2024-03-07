@@ -1,4 +1,5 @@
 using CommandsService.Data;
+using CommandsService.EventProcessing;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseInMemoryDatabase("InMemory"));
 builder.Services.AddScoped<ICommandRepository, CommandRepository>();
 builder.Services.AddControllers();
+
+builder.Services.AddSingleton<IEventProcessor, EventProcessor>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 var app = builder.Build();
 

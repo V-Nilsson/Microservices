@@ -9,13 +9,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 //if (builder.Environment.IsProduction())
 //{
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("PlatformsConnection")));
+//builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//    options.UseSqlServer(builder.Configuration.GetConnectionString("PlatformsConnection")));
 //}
 //else
 //{
-//    builder.Services.AddDbContext<ApplicationDbContext>(options =>
-//    options.UseInMemoryDatabase("InMemory"));
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+options.UseInMemoryDatabase("InMemory"));
 //}
 
 builder.Services.AddControllers();
